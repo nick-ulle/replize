@@ -5,10 +5,21 @@ if !has('lua')
 endif
 
 function! REPLize()
-    lua replize()
+    lua replize.replize()
 endfunction
 
 lua << EOF
+local package = {}
+replize = package
+
+-- Imports
+local os = os
+local string = string
+local vim = vim
+
+-- Package
+_ENV = package
+
 function replize()
     local ft = vim.eval("&filetype")
 
@@ -30,14 +41,16 @@ function send_tmux(text)
     text = string.gsub(text, "'", "'\\''")
     text = "tmux send-keys '" .. text .. "' C-m"
     os.execute(text)
+    -- Fix redraw bug.
+    vim.command("redraw!")
 end
 
 function call_hook(filetype, mode, arg)
     base = mode .. "_hook"
 
     -- Check whether the specified hook exists; otherwise, use default.
-    hook = _G[filetype .. "_" .. base]
-    if not hook then hook = _G[base] end
+    hook = _ENV[filetype .. "_" .. base]
+    if not hook then hook = _ENV[base] end
 
     return hook(arg)
 end
@@ -56,5 +69,7 @@ function post_hook()
     -- Default post_hook().
     vim.command("normal j")
 end
+
+return package
 EOF
 
