@@ -39,8 +39,9 @@ end
 function send_tmux(text)
     -- Sends specified text to tmux.
     text = string.gsub(text, "'", "'\\''")
-    text = "tmux send-keys '" .. text .. "' C-m"
+    text = "tmux send-keys -l '" .. text .. "'"
     os.execute(text)
+    os.execute("tmux send-keys C-m")
     -- Fix redraw bug.
     vim.command("redraw!")
 end
